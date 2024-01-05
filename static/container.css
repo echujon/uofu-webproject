@@ -1,0 +1,45 @@
+td,
+th {
+    padding: 1px 4px;
+}
+
+.remove-column {
+    color: red;
+    cursor: pointer;
+}
+
+.remove-column:after {
+    content: "\2296";
+}
+
+#visual-area {
+    float: right;
+    margin-right: 5px;
+}
+
+tr.selected {
+    background: orange;
+}
+
+rect.selected {
+    fill: orange;
+}
+
+tr.clickable {
+    cursor: pointer;
+}
+
+#player-table {
+    /*float: left;*/
+    display: inline-block;
+}
+
+#visual {
+    float: right;
+    display: none;
+}
+
+#visual.show {
+    float: right;
+    display: block;
+}
