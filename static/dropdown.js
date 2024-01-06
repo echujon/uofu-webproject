@@ -7,7 +7,13 @@ let dropDownAttributes = {};
 let dropDownMenu, columns,checkedColumn;
 
 
-let visual_objects = [{attribute: "Speed", type: "histogram"}, {attribute: "Stamina", type: "histogram"}]
+let visual_objects = [
+    {attribute: "Speed", type: "histogram"}, 
+    {attribute: "Stamina", type: "histogram"},
+    {attribute: "Strength", type: "histogram"},
+    {attribute: "Nationality", type: "bar"},
+    {attribute: "Club", type: "bar"}
+]
 
 function setColumns (cols) {
     columns = cols;
@@ -46,24 +52,36 @@ function findVisual(columnName) {
                 .attr("type", "checkbox");
     checkbox.attr("id", columnName);
     checkbox.on('change', function (e) {
-        let uncheckbox = dropDownMenu.select("input[type='checkbox']:checked");
-        if (uncheckbox.node() != this) {
-            uncheckbox.property("checked",false);
-            checkedColumn = null;
-        }
+        table.refresh();
+        let checkedBoxes = dropDownMenu.selectAll("input[type='checkbox']:checked");
+        checkedBoxes.each(function(){
+                if (this !== e.target) {
+                    d3.select(this).property("checked",false);
+                }
+            });
+        
         let visualObj = findVisual(columnName);
         if (this.checked) {
-             checkedColumn = columnName;
-             visual.showVisual(visualObj);
-        }
-        else
-            visual.showVisual(visualObj, false);
-    });
+                setCheckedColumn(columnName);
+                visual.showVisual(visualObj);
+            }
+            else {
+                setCheckedColumn(null);
+                visual.showVisual(visualObj, false);
+
+            }
+        });
+
+            
                 
 }
 
 export function getCheckedColumn() {
     return checkedColumn;
+}
+
+function setCheckedColumn(column) {
+    checkedColumn = column;
 }
 function updateDropDown(attributes) {
     columns = getColumns();                  
@@ -112,4 +130,7 @@ export function addDropDown(container, dropDownData, columns) {
     updateDropDown(dropDownData);
     addVisualCheckBox("Speed");
     addVisualCheckBox("Stamina");
+    addVisualCheckBox("Strength");
+    addVisualCheckBox("Nationality");
+    addVisualCheckBox("Club");
 }

@@ -10,17 +10,18 @@ let container = d3.select("body")
 let columns = ['Name', 'Nationality', 'National_Position', 'Club', 'Height',  'Preffered_Foot', 'Speed', 'Stamina']                        
 d3.json("/players/").then(function(data) {
     table.addTable(container, data,columns);
-    d3.json("/attributes").then(function (data) {
+    visual.addVisual(container,data,columns);
+   
+  }).catch(function (error){
+     if (error)
+        console.log(error);
+  });
+  
+  d3.json("/attributes").then(function (data) {
       dropdown.addDropDown(container, data,columns);
       
       } ).catch(function (error){
             if (error)
             console.log(error);
       });
-      visual.addVisual(container,data,columns);
-   
-  }).catch(function (error){
-     if (error)
-        console.log(error);
-  });
 
