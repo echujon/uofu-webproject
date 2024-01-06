@@ -2,8 +2,12 @@ import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 import * as dropdown from "./dropdown.js";
 import * as visual from "./visual.js";
 let players_data = {};
-let table = null;
+let table,selectedPlayer;
 
+//Get rids of any selection
+export function refresh() {
+    getTable().selectAll(".selected").classed("selected",false);
+}
 export function updateTable(columns) {
       var sortOrder = false;
 
@@ -21,7 +25,7 @@ export function updateTable(columns) {
         .selectAll('th')
         .data(columns);
     headers.exit().remove();
-    var th = headers.enter().append('th')
+    let th = headers.enter().append('th')
                     .attr("id", function(column){
                                return column
                           });
@@ -41,6 +45,12 @@ export function updateTable(columns) {
             return column })
           .on('click', function (event, col) {
                 sortOrder = !sortOrder
+                //keep selected class order
+                let selectedRow = d3.select("tr.selected");
+                if (selectedRow.size()>0) {
+                    selectedPlayer = selectedRow.select(".col-Name").text();
+                }
+
                 if (sortOrder) {
                 getPlayersData().sort(function (a, b) {
                         return collator.compare(a[col], b[col]);
@@ -52,7 +62,7 @@ export function updateTable(columns) {
                         return collator.compare(b[col], a[col]);
                     });
                 }
-                updateRows(d3.select("table tbody"),  columns);
+                updateRows(tbody,  columns);
             });
             
       updateRows(tbody, columns);
@@ -65,11 +75,15 @@ function updateRows(tbody, columns) {
   let rows = tbody.selectAll('tr')
                   .data(getPlayersData()).join("tr")
                   .classed("clickable",true)
+                  .classed("selected", function (data){
+                     return (data.Name === selectedPlayer ? true : false)
+                  })
                   .on("click", function(event, data) {
                     d3.select("tr.selected").classed("selected", false);
                     d3.select(this).classed("selected",true);
                     let checkedColumn = dropdown.getCheckedColumn();
-                    visual.selectVisualData(data,checkedColumn);
+                    if (checkedColumn)
+                        visual.selectVisualData(data,checkedColumn);
                   });
 
       // create a cell in each row for each column
