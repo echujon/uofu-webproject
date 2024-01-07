@@ -32,14 +32,29 @@ tr.clickable {
 #player-table {
     /*float: left;*/
     display: inline-block;
+    margin-top: 10px;
 }
 
 #visual {
     float: right;
     display: none;
+    margin-top: 10px;
 }
 
 #visual.show {
     float: right;
     display: block;
+}
+
+.dropdown-menu {
+    border-bottom: 1px solid;
+}
+
+.visual-checkbox {
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
+.sortable {
+    cursor: pointer;
 }

@@ -10,9 +10,13 @@ let dropDownMenu, columns,checkedColumn;
 let visual_objects = [
     {attribute: "Speed", type: "histogram"}, 
     {attribute: "Stamina", type: "histogram"},
+    {attribute: "Balance", type: "histogram"},
     {attribute: "Strength", type: "histogram"},
+    {attribute: "Rating", type: "histogram"},
     {attribute: "Nationality", type: "bar"},
-    {attribute: "Club", type: "bar"}
+    {attribute: "Club", type: "bar"},
+    {attribute: "Club_Position", type: "bar"},
+    {attribute: "Preffered_Foot", type: "bar"}
 ]
 
 function setColumns (cols) {
@@ -36,6 +40,14 @@ export function removeColumn(columnName) {
     dropDownAttributes.push(columnName);
     setColumns(columns);
     updateDropDown(dropDownAttributes);
+    const visualObj = findVisual(columnName);
+    //if we have a visual, we need to stop showing it
+    if (visualObj) {
+        removeVisualCheckBox(columnName);
+        visual.showVisual(visualObj, false);
+
+    }
+    
 }
 
 function findVisual(columnName) {
@@ -43,19 +55,26 @@ function findVisual(columnName) {
     return visualObject;
 }
 
- function addVisualCheckBox(columnName) {
+function removeVisualCheckBox(checkboxName) {
+    
+    getDropDownMenu().select("#checkbox_" + checkboxName).remove();
+
+}
+function addVisualCheckBox(columnName) {
     let dropDownMenu = getDropDownMenu();
     let checkbox = dropDownMenu.select(".show-visuals")
                 .append("label")
                 .text(columnName)
+                .attr("class", "visual-checkbox")
+                .attr("id", "checkbox_"+columnName)
                 .append("input")
                 .attr("type", "checkbox");
-    checkbox.attr("id", columnName);
     checkbox.on('change', function (e) {
-        table.refresh();
+        table.refresh(); //remove unnecessary highlighting
         let checkedBoxes = dropDownMenu.selectAll("input[type='checkbox']:checked");
         checkedBoxes.each(function(){
-                if (this !== e.target) {
+                if (this !== e.target) {  //remove check from checked 
+                                            // checkboxes if it's not the target
                     d3.select(this).property("checked",false);
                 }
             });
@@ -104,6 +123,9 @@ function updateDropDown(attributes) {
         setColumns(columns);
         table.updateTable(getColumns());
         updateDropDown(attributes);
+        if (findVisual(newColumnName)) {
+            addVisualCheckBox(newColumnName);
+        }
 
     });
 
@@ -124,13 +146,17 @@ export function addDropDown(container, dropDownData, columns) {
                     .text("+");
     let showVisuals = dropDownMenu.append("div")
                                   .attr("class", "show-visuals")
-                                  .append("span").text("Show Visuals:")
+                                  .append("span")
+                                  .attr("class", "visualizaton-label")
+                                  .text("Visualization:")
     setColumns(columns);
     setDropDownMenu(dropDownMenu);
     updateDropDown(dropDownData);
-    addVisualCheckBox("Speed");
-    addVisualCheckBox("Stamina");
-    addVisualCheckBox("Strength");
-    addVisualCheckBox("Nationality");
-    addVisualCheckBox("Club");
+    //want to know what columns are also in visual_objects
+    const checkboxes = visual_objects.filter(visualObj => columns.includes(visualObj.attribute))
+                                     .map( obj => obj.attribute);
+    //create checkboxes for them
+    checkboxes.forEach(checkbox =>
+         addVisualCheckBox(checkbox)
+    );
 }
