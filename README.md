@@ -6,7 +6,7 @@ The D3.js library will be delivered by the CDN jsdelvir.net.
 The main backend code is found in app.py, all the APIs can be found there. 
 
 The static directory contains all the javascript and css files that we need for this project.
-I've added the JSON file soccer_small.json needed to extract data that's needed.
+I've added the JSON file soccer_small.json  to extract data that's needed.
 
 The Graph and Visulization will be shown on the home (/) page:
 
