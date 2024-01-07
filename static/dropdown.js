@@ -41,10 +41,15 @@ export function removeColumn(columnName) {
     setColumns(columns);
     updateDropDown(dropDownAttributes);
     const visualObj = findVisual(columnName);
-    //if we have a visual, we need to stop showing it
+    
     if (visualObj) {
         removeVisualCheckBox(columnName);
-        visual.showVisual(visualObj, false);
+        //if we have a visual that's checked, we need to stop showing it
+        if (getCheckedColumn() == columnName) {
+            setCheckedColumn(null);
+            visual.showVisual(visualObj, false);
+            
+        }
 
     }
     
@@ -62,7 +67,7 @@ function removeVisualCheckBox(checkboxName) {
 }
 function addVisualCheckBox(columnName) {
     let dropDownMenu = getDropDownMenu();
-    let checkbox = dropDownMenu.select(".show-visuals")
+    const checkbox = dropDownMenu.select(".show-visual-checkboxes")
                 .append("label")
                 .text(columnName)
                 .attr("class", "visual-checkbox")
@@ -71,16 +76,17 @@ function addVisualCheckBox(columnName) {
                 .attr("type", "checkbox");
     checkbox.on('change', function (e) {
         table.refresh(); //remove unnecessary highlighting
-        let checkedBoxes = dropDownMenu.selectAll("input[type='checkbox']:checked");
+        const checkedBoxes = dropDownMenu.selectAll("input[type='checkbox']:checked");
+        const checkedTarget = e.target;
         checkedBoxes.each(function(){
-                if (this !== e.target) {  //remove check from checked 
+                if (this !== checkedTarget) {  //remove check from checked 
                                             // checkboxes if it's not the target
                     d3.select(this).property("checked",false);
                 }
             });
         
         let visualObj = findVisual(columnName);
-        if (this.checked) {
+        if (checkedTarget.checked) {
                 setCheckedColumn(columnName);
                 visual.showVisual(visualObj);
             }
@@ -145,7 +151,7 @@ export function addDropDown(container, dropDownData, columns) {
                     .attr("type", "button")
                     .text("+");
     let showVisuals = dropDownMenu.append("div")
-                                  .attr("class", "show-visuals")
+                                  .attr("class", "show-visual-checkboxes")
                                   .append("span")
                                   .attr("class", "visualizaton-label")
                                   .text("Visualization:")

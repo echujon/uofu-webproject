@@ -58,3 +58,11 @@ tr.clickable {
 .sortable {
     cursor: pointer;
 }
+
+button.addButton {
+    margin-left: 4px;
+}
+
+.show-visual-checkboxes {
+    margin-top: 5px;
+}

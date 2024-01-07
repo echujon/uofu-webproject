@@ -226,7 +226,7 @@ export function updateVisual(visualObj) {
 
 }
 
-export function addVisual(container, playerData,columns) {
+export function addVisual(container, playerData) {
 
     visualCanvas = d3.select(container)
                     .append("div")

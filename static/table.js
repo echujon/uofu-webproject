@@ -72,7 +72,7 @@ export function updateTable(columns) {
 }
 
 function updateRows(tbody, columns) {
-  let rows = tbody.selectAll('tr')
+  const rows = tbody.selectAll('tr')
                   .data(getPlayersData()).join("tr")
                   .classed("clickable",true)
                   .classed("selected", function (data){
@@ -81,13 +81,13 @@ function updateRows(tbody, columns) {
                   .on("click", function(event, data) {
                     d3.select("tr.selected").classed("selected", false);
                     d3.select(this).classed("selected",true);
-                    let checkedColumn = dropdown.getCheckedColumn();
+                    const checkedColumn = dropdown.getCheckedColumn();
                     if (checkedColumn)
                         visual.selectVisualData(data,checkedColumn);
                   });
 
       // create a cell in each row for each column
-  let cells = rows.selectAll('td')
+  const cells = rows.selectAll('td')
         .data(function (row) {
           return columns.map(function (column) {
             return {column: column, value: row[column]};
