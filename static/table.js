@@ -18,14 +18,14 @@ export function updateTable(columns) {
       });
 
      // append the header row
-    let table = getTable();
-    let tr = table.select("thead tr");
-    let tbody = table.select("tbody");
-    let headers =tr
+    const table = getTable();
+    const tr = table.select("thead tr");
+    const tbody = table.select("tbody");
+    const headers =tr
         .selectAll('th')
         .data(columns);
     headers.exit().remove();
-    let th = headers.enter().append('th')
+    const th = headers.enter().append('th')
                     .attr("id", function(column){
                                return column
                           });
@@ -81,9 +81,9 @@ function updateRows(tbody, columns) {
                   .on("click", function(event, data) {
                     d3.select("tr.selected").classed("selected", false);
                     d3.select(this).classed("selected",true);
-                    const checkedColumn = dropdown.getCheckedColumn();
-                    if (checkedColumn)
-                        visual.selectVisualData(data,checkedColumn);
+                    const checkedVisualObject = dropdown.getCheckedVisual();
+                    if (checkedVisualObject)
+                        visual.selectVisualData(data,checkedVisualObject);
                   });
 
       // create a cell in each row for each column

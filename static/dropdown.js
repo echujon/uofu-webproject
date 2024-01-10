@@ -3,20 +3,22 @@ import * as table from "./table.js"
 import * as visual from "./visual.js"
 
 
-let dropDownAttributes = {};
-let dropDownMenu, columns,checkedColumn;
+let dropDownMenu,dropDownAttributes, columns,checkedVisualObject;
 
 
-let visual_objects = [
-    {attribute: "Speed", type: "histogram"}, 
-    {attribute: "Stamina", type: "histogram"},
-    {attribute: "Balance", type: "histogram"},
-    {attribute: "Strength", type: "histogram"},
-    {attribute: "Rating", type: "histogram"},
-    {attribute: "Nationality", type: "bar"},
-    {attribute: "Club", type: "bar"},
-    {attribute: "Club_Position", type: "bar"},
-    {attribute: "Preffered_Foot", type: "bar"}
+const visualObjects = [
+    {attribute: "Speed", type: "histogram", name: "Speed", uniqueProp:"Speed"}, 
+    {attribute: "Stamina", type: "histogram", name: "Stamina", uniqueProp:"Stamina"},
+    {attribute: "Balance", type: "histogram", name: "Balance", uniqueProp: "Balance"},
+    {attribute: "Strength", type: "histogram", name: "Strength", uniqueProp: "Strength"},
+    {attribute: "Rating", type: "histogram", name: "Rating", uniqueProp: "Rating"},
+    {attribute: "Nationality", type: "bar", name: "Nationality", uniqueProp: "Nationality"},
+    {attribute: "Club", type: "bar", name: "Club", uniqueProp: "Club"},
+    {attribute: "Club_Position", type: "bar", name: "Club Position", uniqueProp: "Club_Position"},
+    {attribute: "Preffered_Foot", type: "bar", name: "Preffered Foot", uniqueProp: "Preffered_Foot"},
+    {attributes:["Speed", "Stamina"],  type: "scatter", name: "Speed vs Stamina", uniqueProp: "Name"},
+    {attributes:["Strength", "Rating"],  type: "scatter", name: "Strength vs Rating", uniqueProp: "Name"}
+    
 ]
 
 function setColumns (cols) {
@@ -40,59 +42,88 @@ export function removeColumn(columnName) {
     dropDownAttributes.push(columnName);
     setColumns(columns);
     updateDropDown(dropDownAttributes);
-    const visualObj = findVisual(columnName);
+    const visualObjects = findVisualsWithColumnToRemove(columnName);
     
-    if (visualObj) {
-        removeVisualCheckBox(columnName);
+    visualObjects.forEach( visualObject =>{
+        removeVisualCheckBox(visualObject);
         //if we have a visual that's checked, we need to stop showing it
-        if (getCheckedColumn() == columnName) {
-            setCheckedColumn(null);
-            visual.showVisual(visualObj, false);
+        if (getCheckedVisual() == visualObject) {
+            setCheckedVisual(null);
+            visual.showVisual(visualObject, false);
             
+            }
         }
+    )
 
-    }
+}
     
-}
+function findVisualsWithColumnToRemove(columnName) {
+    const foundVisualObjects = visualObjects.filter(obj => 
+            {
+            if (obj.attribute)
+                return obj.attribute == columnName
+            if (obj.attributes)
+                return obj.attributes.includes(columnName);
+            }
+        );
+    return foundVisualObjects;
 
-function findVisual(columnName) {
-    let visualObject = visual_objects.find(obj => obj.attribute === columnName);
-    return visualObject;
 }
+function findVisualsWithColumnToAdd(columnName) {
+    const foundVisualObjects = visualObjects.filter(obj => {
+        if (obj.attribute)
+            return obj.attribute == columnName
+        if (obj.attributes) {  
+            const hasColumn = obj.attributes.includes(columnName)
+            const getOtherColumn = hasColumn ? obj.attributes.find(attr => attr != columnName) : null;
+            return getOtherColumn ? getColumns().includes(getOtherColumn) : false
 
-function removeVisualCheckBox(checkboxName) {
+        }
+    });
     
-    getDropDownMenu().select("#checkbox_" + checkboxName).remove();
+    return foundVisualObjects;
+   
+}
+
+function removeVisualCheckBox(visualObject) {
+    if (visualObject.attribute)
+        getDropDownMenu().select("#checkbox_" + visualObject.attribute).remove();
+    if (visualObject.attributes)
+        getDropDownMenu().select("#checkbox_" + visualObject.attributes.join("-")).remove();
 
 }
-function addVisualCheckBox(columnName) {
-    let dropDownMenu = getDropDownMenu();
-    const checkbox = dropDownMenu.select(".show-visual-checkboxes")
+function addVisualCheckBox(visualObject) {
+    const checkboxContainer = d3.select(".show-visual-checkboxes")
                 .append("label")
-                .text(columnName)
+                .text(visualObject.name)
                 .attr("class", "visual-checkbox")
-                .attr("id", "checkbox_"+columnName)
+                .attr("id", function(){
+                    if (visualObject.attribute)
+                        return "checkbox_"+visualObject.attribute
+                    if (visualObject.attributes)
+                        return  "checkbox_"+visualObject.attributes.join("-");
+                })
                 .append("input")
                 .attr("type", "checkbox");
-    checkbox.on('change', function (e) {
-        table.refresh(); //remove unnecessary highlighting
-        const checkedBoxes = dropDownMenu.selectAll("input[type='checkbox']:checked");
-        const checkedTarget = e.target;
-        checkedBoxes.each(function(){
+    checkboxContainer.on('change', function (e) {
+            table.refresh(); //remove unnecessary highlighting
+            const checkedBoxes = dropDownMenu.selectAll("input[type='checkbox']:checked");
+            const checkedTarget = e.target;
+            checkedBoxes.each(function(){
                 if (this !== checkedTarget) {  //remove check from checked 
                                             // checkboxes if it's not the target
                     d3.select(this).property("checked",false);
                 }
             });
         
-        let visualObj = findVisual(columnName);
+        /*const visualObj = findVisuals(columnName);*/
         if (checkedTarget.checked) {
-                setCheckedColumn(columnName);
-                visual.showVisual(visualObj);
+                setCheckedVisual(visualObject);
+                visual.showVisual(visualObject);
             }
-            else {
-                setCheckedColumn(null);
-                visual.showVisual(visualObj, false);
+        else {
+                setCheckedVisual(null);
+                visual.showVisual(visualObject, false);
 
             }
         });
@@ -101,12 +132,12 @@ function addVisualCheckBox(columnName) {
                 
 }
 
-export function getCheckedColumn() {
-    return checkedColumn;
+export function getCheckedVisual() {
+    return checkedVisualObject;
 }
 
-function setCheckedColumn(column) {
-    checkedColumn = column;
+function setCheckedVisual(visualObj) {
+    checkedVisualObject = visualObj;
 }
 function updateDropDown(attributes) {
     columns = getColumns();                  
@@ -129,9 +160,10 @@ function updateDropDown(attributes) {
         setColumns(columns);
         table.updateTable(getColumns());
         updateDropDown(attributes);
-        if (findVisual(newColumnName)) {
-            addVisualCheckBox(newColumnName);
-        }
+        const visualObjects = findVisualsWithColumnToAdd(newColumnName);
+        visualObjects.forEach( visualObject =>
+            addVisualCheckBox(visualObject)
+        )
 
     });
 
@@ -139,18 +171,18 @@ function updateDropDown(attributes) {
   }
 
 export function addDropDown(container, dropDownData, columns) {
-    let dropDownMenu = d3.select(container)
+    const dropDownMenu = d3.select(container)
                     .append("div")
                     .attr("class", "dropdown-menu").lower();
-    let title  = dropDownMenu.append("div")
+                    const title  = dropDownMenu.append("div")
                             .text("Player Attributes");
-    let dropdown = dropDownMenu.append("select")
+    const dropdown = dropDownMenu.append("select")
                     .attr("class", "attributes");
-    let addButton = dropDownMenu.append("button")
+    const addButton = dropDownMenu.append("button")
                     .attr("class", "addButton")
                     .attr("type", "button")
                     .text("+");
-    let showVisuals = dropDownMenu.append("div")
+    const showVisuals = dropDownMenu.append("div")
                                   .attr("class", "show-visual-checkboxes")
                                   .append("span")
                                   .attr("class", "visualizaton-label")
@@ -158,11 +190,15 @@ export function addDropDown(container, dropDownData, columns) {
     setColumns(columns);
     setDropDownMenu(dropDownMenu);
     updateDropDown(dropDownData);
-    //want to know what columns are also in visual_objects
-    const checkboxes = visual_objects.filter(visualObj => columns.includes(visualObj.attribute))
-                                     .map( obj => obj.attribute);
+    //want to know what columns are also in visualObjects
+    const visualCheckboxes = visualObjects.filter(visualObj => {
+        if (visualObj.attribute)
+            return columns.includes(visualObj.attribute)
+        if (visualObj.attributes)
+            return visualObj.attributes.every(attr=> columns.includes(attr));
+    });
     //create checkboxes for them
-    checkboxes.forEach(checkbox =>
+    visualCheckboxes.forEach(checkbox =>
          addVisualCheckBox(checkbox)
     );
 }

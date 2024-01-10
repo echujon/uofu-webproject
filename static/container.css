@@ -21,8 +21,12 @@ tr.selected {
     background: orange;
 }
 
-rect.selected {
+g .selected {
     fill: orange;
+}
+
+circle.selected {
+    r: 6;
 }
 
 tr.clickable {
@@ -39,6 +43,7 @@ tr.clickable {
     float: right;
     display: none;
     margin-top: 10px;
+    margin-right: 15px;
 }
 
 #visual.show {

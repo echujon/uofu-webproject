@@ -9,11 +9,13 @@ function getPlayersData() {
     return players_data;
 }
 
-export function selectVisualData(data, column) {
-    let value = data[column];
-    svg.selectAll("rect").classed("selected", false); 
+export function selectVisualData(data, visualObject) {
+    const uniqueProp = visualObject.uniqueProp;
+    const value = data[uniqueProp]
+    const visualData = visualObject.type !== 'scatter' ? 'rect': 'circle';
+    svg.selectAll(visualData).classed("selected", false); 
     // Highlight the new bar
-    svg.select("["+ column+"-attr='" + value + "']").classed("selected", true);
+    svg.select("["+ uniqueProp+"-attr='" + value + "']").classed("selected", true).raise();
     
     svg.select(".player-name").text(data.Name);
 }
@@ -28,25 +30,12 @@ export function showVisual(visualObj, show=true) {
     else
         visualCanvas.classed("show", false);
 }
-
-function updateBarGrap (visualObj) {
-
-    const margin = { top: 25, right: 30, bottom: 30, left: 100 },
-    width = 600 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
-
+function initSVG(margin, width, height) {
+    // Check if SVG exists
     if (!svg || !visualCanvas.select("svg").empty()) {
+        // If SVG exists, remove it
         visualCanvas.select("svg").remove();
     }
-
-    const playerData = getPlayersData();
-    const playerCountData = {};
-    const attribute = visualObj.attribute;
-    playerData.forEach(player => {
-        playerCountData[player[attribute]] = (playerCountData[player[attribute]] || 0) + 1
-    });
-    const barData = Object.keys(playerCountData);
-    const counts = Object.values(playerCountData);
 
     svg = visualCanvas
                   .append("svg")
@@ -54,6 +43,42 @@ function updateBarGrap (visualObj) {
                   .attr("height", height + margin.top + margin.bottom)
                   .append("g")
                   .attr("transform", `translate(${margin.left},${margin.top-8})`);// margin finessing for labels
+
+    //Text for Player Name
+    svg.append("text")
+    .attr("class", "player-name")
+    .attr("x", width / 2)
+    .attr("y", -3)  
+    .attr("text-anchor", "middle")
+    .style("font-size", "20px") 
+    .text("");
+
+}
+function updateBarGrap (visualObj) {
+
+    const margin = { top: 25, right: 30, bottom: 30, left: 100 },
+    width = 600 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+    /*svg = visualCanvas
+                  .append("svg")
+                  .attr("width", width + margin.left + margin.right)
+                  .attr("height", height + margin.top + margin.bottom)
+                  .append("g")
+                  .attr("transform", `translate(${margin.left},${margin.top-8})`);*/ // margin finessing for labels
+
+    initSVG(margin, width, height);
+
+    const playerData = getPlayersData();
+    const playerCountData = {};
+    const uniqueProp = visualObj.uniqueProp;
+    playerData.forEach(player => {
+        playerCountData[player[uniqueProp]] = (playerCountData[player[uniqueProp]] || 0) + 1
+    });
+    const barData = Object.keys(playerCountData);
+    const counts = Object.values(playerCountData);
+
+    
 
     // 3. Scales and Axes
     const x = d3.scaleLinear()
@@ -65,10 +90,10 @@ function updateBarGrap (visualObj) {
         .range([0, height])
         .padding(.1);
 
-    svg.selectAll("myRect")
+    svg.selectAll("rect")
         .data(barData)
         .join("rect")
-        .attr(attribute+"-attr", d=> d)
+        .attr(uniqueProp+"-attr", d=> d)
         .attr("x", x(0))
         .attr("y", d => y(d))
         .attr("width", d => x(playerCountData[d]))
@@ -103,15 +128,6 @@ function updateBarGrap (visualObj) {
         .attr("fill", "black")  // Text color
         .attr("font-weight", "bold")
         .attr("font-size", "14");
-
-    svg.append("text")
-           .attr("class", "player-name")
-           .attr("x", width / 2)
-           .attr("y", -3)  
-           .attr("text-anchor", "middle")
-           .style("font-size", "20px") 
-           .text("");
-     
     
 }
 
@@ -120,22 +136,22 @@ function updateHistogram(visualObj) {
     const margin = { top: 35, right: 30, bottom: 30, left: 40 },
     width = 600 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
-     // Check if SVG exists
-     if (!svg || !visualCanvas.select("svg").empty()) {
-        // If SVG exists, remove it
-        visualCanvas.select("svg").remove();
-    }
+
+    /*svg = visualCanvas
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top-10})`);*/
+
+    initSVG(margin, width, height);
+     
 
 
     const playerData = getPlayersData();
     const attribute = visualObj.attribute;
     // Append the svg object to the body of the page
-    svg = visualCanvas
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top-10})`);
+    
     
 
     const min = d3.min(playerData, d => d[attribute]-1);
@@ -205,23 +221,79 @@ function updateHistogram(visualObj) {
     .attr("height", d => height - y(d.length))
     .attr("fill", "#69b3a2");
 
+}
 
+function updateScatterPlot(visualObj) {
+
+    const margin = { top: 25, right: 30, bottom: 30, left: 100 },
+    width = 600 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+    const xData = visualObj.attributes[0];
+    const yData = visualObj.attributes[1];
+    const uniqueProp = visualObj.uniqueProp;
+    initSVG(margin,width, height);
+    const playerData = getPlayersData();
+
+    // Create scales
+    const xmax = d3.max(playerData, d => d[xData])
+    const xmin = d3.min(playerData, d => d[xData])
+    const xScale = d3.scaleLinear()
+                    .domain([xmin-5, xmax])
+                    .range([margin.left, width - margin.right]);
+
+    const ymax = d3.max(playerData, d => d[yData])
+    const ymin = d3.min(playerData, d => d[yData])                
+    const yScale = d3.scaleLinear()
+                    .domain([ymin-5, ymax])
+                    .range([height - margin.bottom, margin.top]);
+
+
+    svg.selectAll("circle")
+        .data(playerData)
+        .enter()
+        .append("circle")
+        .attr(uniqueProp+"-attr", d => d[uniqueProp])
+        .attr("cx", d => xScale(d[xData]))
+        .attr("cy", d => yScale(d[yData]))
+        .attr("r", 5) //radius
+        .attr("fill", "#1c2a9a");
+
+    // Add x-axis
+    svg.append("g")
+    .attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(xScale));
+
+    // Add y-axis
+    svg.append("g")
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(yScale));
+
+    // Add x axis label
     svg.append("text")
-    .attr("class", "player-name")
-    .attr("x", width / 2)
-    .attr("y", (-margin.top/2)+6)    
-    .attr("text-anchor", "middle")
-    .style("font-size", "20px") // Set the style as needed
-    .text("");
+    .attr("transform", `translate(${width/2},${height - margin.bottom + 40})`)
+    .style("text-anchor", "middle")
+    .text(xData);
+
+    // Add Y axis label
+    svg.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", margin.left - 40)
+    .attr("x", 0 - (height / 2))
+    .text(yData);
 
 }
+
+
 export function updateVisual(visualObj) {
     if (visualObj.type === "histogram") {
         updateHistogram(visualObj);
 
     }
     if (visualObj.type === "bar") {
-        updateBarGrap(visualObj)
+        updateBarGrap(visualObj);
+    }
+    if (visualObj.type === 'scatter') {
+        updateScatterPlot(visualObj);
     }
 
 }
