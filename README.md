@@ -1,6 +1,15 @@
 This is a Flask (Python) Project that uses D3.js for the visualizations. 
 I set up a virtual enviroment (.venv) that is running Flask.
 Set up steps for this can be found here: https://flask.palletsprojects.com/en/3.0.x/installation/
+
+Once you have flask installed make sure that your enviroment is activated:
+```
+. .venv/bin/activate
+```
+You can launch app by using the flask run command:
+```
+flask run
+```
 The D3.js library will be delivered by the CDN jsdelvir.net.
 
 The main backend code is found in app.py, all the APIs can be found there. 
