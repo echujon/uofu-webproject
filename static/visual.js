@@ -222,7 +222,35 @@ function updateHistogram(visualObj) {
     .attr("fill", "#69b3a2");
 
 }
+/**
+ * Function used to get numerical value from data given
+ * @param {*} datum 
+ * @param {*} mapKey 
+ * @returns numerical value
+ */
+function getNumericalData(datum, mapKey) {
+    let copy = {...datum};
+    let dataRef = copy[mapKey];
+    if (typeof dataRef === "string")
+        dataRef= Number(dataRef.replace(/\D/g,''));
+    return dataRef;
 
+
+}
+/**
+ * @param {*} datum - data point
+ */
+function extractUnit(datum) {
+    if (typeof datum == 'string') {
+        const unit = datum.match(/\D+$/);
+        return unit ? unit[0].trim() : null
+    }
+    return null;
+}
+/**
+ * 
+ * @param {*} visualObj 
+ */
 function updateScatterPlot(visualObj) {
 
     const margin = { top: 25, right: 30, bottom: 30, left: 100 },
@@ -233,16 +261,28 @@ function updateScatterPlot(visualObj) {
     const uniqueProp = visualObj.uniqueProp;
     initSVG(margin,width, height);
     const playerData = getPlayersData();
-
+    const xUnit = extractUnit(playerData[0][xData]);
+    const yUnit = extractUnit(playerData[0][yData]);
     // Create scales
-    const xmax = d3.max(playerData, d => d[xData])
-    const xmin = d3.min(playerData, d => d[xData])
+    const xmax = d3.max(playerData, function (d) { 
+        return getNumericalData(d, xData);
+    } )
+    const xmin = d3.min(playerData, function (d) { 
+        return getNumericalData(d, xData);
+
+    })
     const xScale = d3.scaleLinear()
                     .domain([xmin-5, xmax])
                     .range([margin.left, width - margin.right]);
 
-    const ymax = d3.max(playerData, d => d[yData])
-    const ymin = d3.min(playerData, d => d[yData])                
+    const ymax = d3.max(playerData, function (d) { 
+        return getNumericalData(d, yData);
+
+    })
+    const ymin = d3.min(playerData, function (d) { 
+        return getNumericalData(d, yData);
+
+    })                
     const yScale = d3.scaleLinear()
                     .domain([ymin-5, ymax])
                     .range([height - margin.bottom, margin.top]);
@@ -253,33 +293,48 @@ function updateScatterPlot(visualObj) {
         .enter()
         .append("circle")
         .attr(uniqueProp+"-attr", d => d[uniqueProp])
-        .attr("cx", d => xScale(d[xData]))
-        .attr("cy", d => yScale(d[yData]))
+        .attr("cx",
+        function (d) { 
+            const num = getNumericalData(d, xData);
+            return xScale(num);
+    
+        } )
+        .attr("cy", function (d) { 
+            const num = getNumericalData(d, yData);
+            return yScale(num);})
         .attr("r", 5) //radius
         .attr("fill", "#1c2a9a");
 
     // Add x-axis
+    var xAxis = d3.axisBottom(xScale);
+    if (xUnit) {
+        xAxis.tickFormat(d=> d + " "  + xUnit);
+    }
     svg.append("g")
     .attr("transform", `translate(0,${height - margin.bottom})`)
-    .call(d3.axisBottom(xScale));
+    .call(xAxis);
 
     // Add y-axis
+    var yAxis = d3.axisLeft(yScale);
+    if (yUnit) {
+        yAxis.tickFormat(d=> d + " "  + yUnit);
+    }
     svg.append("g")
     .attr("transform", `translate(${margin.left},0)`)
-    .call(d3.axisLeft(yScale));
+    .call(yAxis);
 
     // Add x axis label
     svg.append("text")
     .attr("transform", `translate(${width/2},${height - margin.bottom + 40})`)
     .style("text-anchor", "middle")
-    .text(xData);
+    .text(xData.replace(/_/g, ' '));
 
     // Add Y axis label
     svg.append("text")
     .attr("transform", "rotate(-90)")
     .attr("y", margin.left - 40)
     .attr("x", 0 - (height / 2))
-    .text(yData);
+    .text(yData.replace(/_/g, ' '));
 
 }
 

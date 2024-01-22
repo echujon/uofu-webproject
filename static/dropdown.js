@@ -17,7 +17,11 @@ const visualObjects = [
     {attribute: "Club_Position", type: "bar", name: "Club Position", uniqueProp: "Club_Position"},
     {attribute: "Preffered_Foot", type: "bar", name: "Preffered Foot", uniqueProp: "Preffered_Foot"},
     {attributes:["Speed", "Stamina"],  type: "scatter", name: "Speed vs Stamina", uniqueProp: "Name"},
-    {attributes:["Strength", "Rating"],  type: "scatter", name: "Strength vs Rating", uniqueProp: "Name"}
+    {attributes:["Strength", "Rating"],  type: "scatter", name: "Strength vs Rating", uniqueProp: "Name"},
+    {attributes:["Height", "Speed"],  type: "scatter", name: "Height vs Speed", uniqueProp: "Name"},
+    {attributes:["Ball_Control", "Speed"],  type: "scatter", name: "Ball Control vs Speed", uniqueProp: "Name"},
+    {attributes:["Weight", "Speed"],  type: "scatter", name: "Weight vs Speed", uniqueProp: "Name"}
+
     
 ]
 
@@ -93,19 +97,20 @@ function removeVisualCheckBox(visualObject) {
 
 }
 function addVisualCheckBox(visualObject) {
-    const checkboxContainer = d3.select(".show-visual-checkboxes")
-                .append("label")
-                .text(visualObject.name)
+    const checkboxContainer = d3.select(".show-visual-checkboxes");
+
+    const label = checkboxContainer.append("label")
                 .attr("class", "visual-checkbox")
                 .attr("id", function(){
                     if (visualObject.attribute)
                         return "checkbox_"+visualObject.attribute
                     if (visualObject.attributes)
                         return  "checkbox_"+visualObject.attributes.join("-");
-                })
-                .append("input")
+                });
+    const checkboxInput = label.append("input")
                 .attr("type", "checkbox");
-    checkboxContainer.on('change', function (e) {
+        label.append("span").text(visualObject.name);
+        checkboxInput.on('change', function (e) {
             table.refresh(); //remove unnecessary highlighting
             const checkedBoxes = dropDownMenu.selectAll("input[type='checkbox']:checked");
             const checkedTarget = e.target;
@@ -149,12 +154,13 @@ function updateDropDown(attributes) {
     dropdownData.enter()
                 .append("option")
                 .merge(dropdownData)
+                .attr("value", d => d)
                 .text(function (d) { 
-                        return d;
+                        return d.replace(/_/g, " ");
                 });
     dropdownData.exit().remove();
     let addButton = dropDownMenu.select(".addButton");
-    addButton.on('click', function (e) {
+    addButton.on('click', function (e,val) {
         let newColumnName = d3.select(this.parentNode).select(".attributes").node().value;
         columns.push(newColumnName);
         setColumns(columns);

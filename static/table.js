@@ -42,7 +42,8 @@ export function updateTable(columns) {
 
           })
       th.append("span").attr("class", "sortable").text(function (column) { 
-            return column })
+            return column.replace(/_/g, ' ') 
+          })
           .on('click', function (event, col) {
                 sortOrder = !sortOrder
                 //keep selected class order
