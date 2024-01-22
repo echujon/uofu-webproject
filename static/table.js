@@ -4,6 +4,16 @@ import * as visual from "./visual.js";
 let players_data = {};
 let table,selectedPlayer;
 
+//highlight Multiple Rows
+export function highlightDataRows(playerDataToHighlight) {
+  refresh();
+  playerDataToHighlight.forEach(d => {
+    const rowId = d.Name.replace(/ /g, '_')
+    const row = d3.select("tr#"+rowId).node();
+    highlightRow(row);
+  });
+}
+
 //Get rids of any selection
 export function refresh() {
     getTable().selectAll(".selected").classed("selected",false);
@@ -71,17 +81,21 @@ export function updateTable(columns) {
       
     return table;
 }
-
+function highlightRow(rowToHighlight) {
+  d3.select(rowToHighlight).classed("selected",true);
+}
 function updateRows(tbody, columns) {
   const rows = tbody.selectAll('tr')
                   .data(getPlayersData()).join("tr")
+                  .attr("id", d=> d.Name.replace(/ /g, '_')
+                  )
                   .classed("clickable",true)
                   .classed("selected", function (data){
                      return (data.Name === selectedPlayer ? true : false)
                   })
                   .on("click", function(event, data) {
-                    d3.select("tr.selected").classed("selected", false);
-                    d3.select(this).classed("selected",true);
+                    refresh();
+                    highlightRow(this);
                     const checkedVisualObject = dropdown.getCheckedVisual();
                     if (checkedVisualObject)
                         visual.selectVisualData(data,checkedVisualObject);

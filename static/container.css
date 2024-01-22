@@ -29,7 +29,7 @@ circle.selected {
     r: 6;
 }
 
-tr.clickable {
+.clickable {
     cursor: pointer;
 }
 

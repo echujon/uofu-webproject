@@ -1,22 +1,48 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+import * as table from "./table.js"
 
 let svg, visualCanvas,players_data;
 function setPlayersData(playerData) {
     players_data = playerData;
 }
 
+function selectVisualDataRep(data, element, type, attr=null) {
+    let passData = [];
+    highlightVisualData(type,element);
+    if (type == 'bar'){
+        passData = getPlayersData().filter(d=>
+           d[attr] == data   
+        )
+
+    }
+    else if (type == 'scatter') {
+        svg.select(".player-name").text(data.Name);
+        passData = [data];
+
+    }
+    else {
+        passData = data
+    }
+    table.highlightDataRows(passData);
+    
+}
 function getPlayersData() {
     return players_data;
+}
+
+function highlightVisualData(type,element) {
+    const visualSelector = type !== 'scatter' ? 'rect': 'circle';
+    svg.selectAll(visualSelector).classed("selected", false); 
+    svg.select(".player-name").text("");
+    d3.select(element).classed("selected", true).raise();
+
 }
 
 export function selectVisualData(data, visualObject) {
     const uniqueProp = visualObject.uniqueProp;
     const value = data[uniqueProp]
-    const visualData = visualObject.type !== 'scatter' ? 'rect': 'circle';
-    svg.selectAll(visualData).classed("selected", false); 
-    // Highlight the new bar
-    svg.select("["+ uniqueProp+"-attr='" + value + "']").classed("selected", true).raise();
-    
+    const el = svg.select("["+ uniqueProp+"-attr='" + value + "']");
+    highlightVisualData(visualObject.type, el.node());
     svg.select(".player-name").text(data.Name);
 }
 
@@ -98,7 +124,11 @@ function updateBarGrap (visualObj) {
         .attr("y", d => y(d))
         .attr("width", d => x(playerCountData[d]))
         .attr("height", y.bandwidth())
-        .attr("fill", "#000dff");
+        .attr("fill", "#000dff")
+        .attr("class", "clickable")
+        .on("click", function(event,d) {
+            selectVisualDataRep(d, this, "bar", uniqueProp);
+        });;
 
         svg.selectAll(".label")
         .data(barData) 
@@ -110,8 +140,9 @@ function updateBarGrap (visualObj) {
         }) 
         .attr("y", function(d) { return y(d) + y.bandwidth() / 2; }) // vertically centered in the bar
         .attr("dy", ".35em") // vertical alignment
-        .text(function(d) { return  playerCountData[d]; }); // set the label
+        .text(function(d) { return  playerCountData[d]; });
 
+     // set the label
     svg.append("g")
         .call(d3.axisLeft(y));
 
@@ -137,12 +168,6 @@ function updateHistogram(visualObj) {
     width = 600 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
-    /*svg = visualCanvas
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top-10})`);*/
 
     initSVG(margin, width, height);
      
@@ -219,7 +244,11 @@ function updateHistogram(visualObj) {
     .attr("y", d => y(d.length))
     .attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 1))
     .attr("height", d => height - y(d.length))
-    .attr("fill", "#69b3a2");
+    .attr("fill", "#69b3a2")
+    .attr("class", "clickable")
+    .on("click", function(event,d) {
+        selectVisualDataRep(d, this, "histogram");
+    });
 
 }
 /**
@@ -303,7 +332,11 @@ function updateScatterPlot(visualObj) {
             const num = getNumericalData(d, yData);
             return yScale(num);})
         .attr("r", 5) //radius
-        .attr("fill", "#1c2a9a");
+        .attr("fill", "#1c2a9a")
+        .attr("class", "clickable")
+        .on("click", function(event,d) {
+            selectVisualDataRep(d, this, "scatter");
+        });;
 
     // Add x-axis
     var xAxis = d3.axisBottom(xScale);
