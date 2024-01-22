@@ -28,8 +28,20 @@ You can see the visualization of a player's attribute by clicking on the a visul
 There are 3 different types of visualizations: Histogram, Bar Graph, Scatter Plot.
 You can find the attribute columns that enable these visualizations in the dropdown.js file under the variable visualObjects.
 
+
 Here are the mappings for convenience:
 * Histogram: Speed, Stamina, Balance, Strength, Rating
 * Bar Graph: Nationality, Club, Club Position
-* Scatter Plot: [Speed, Stamina], [Strength, Rating]
+* Scatter Plot: [Speed, Stamina], [Strength, Rating], [Height,Speed], [Ball Control, Speed], [Weight, Speed]
   * For the Scatter Plot you will need to have both attributes enabled.
+
+Once you clicked on a visualation checkbox, you can now select a row of a player's data, and the visuzalation on the right should be highlighted as well as show the name of the player above the visualization:
+![Screenshot 2024-01-22 at 2 52 36 PM](https://github.com/echujon/uofu-webproject/assets/2402634/9ccaf613-b31c-4301-a8bb-5b98861b98b6)
+
+Vice versa, you can select a data value visualizaton, and the player row or rows shoud be selected:
+![Screenshot 2024-01-22 at 2 54 28 PM](https://github.com/echujon/uofu-webproject/assets/2402634/dd412bd9-3465-4ab4-a04f-abaa3530ed21)
+
+
+
+
+
